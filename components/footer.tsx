@@ -12,7 +12,7 @@ export function Footer() {
               <span className="text-xl font-bold text-foreground">PIRNAD Ltd</span>
             </Link>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Professional cleaning services across West Yorkshire. Trusted by businesses for over 15 years.
+              Professional cleaning services across West Yorkshire. Trusted by businesses over the years.
             </p>
           </div>
 
@@ -90,7 +90,7 @@ export function Footer() {
         <div className="mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-muted-foreground">
             <p>© {new Date().getFullYear()} PIRNAD Ltd. All rights reserved.</p>
-            <p>Company Registration No. 12345678 | VAT No. GB123456789</p>
+            {/* <p>Company Registration No. 12345678 | VAT No. GB123456789</p> */}
           </div>
         </div>
       </div>

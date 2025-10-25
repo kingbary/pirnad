@@ -61,7 +61,7 @@ export function Hero() {
               </Button>
             </div>
 
-            <div className="flex flex-wrap gap-6 pt-4">
+            {/* <div className="flex flex-wrap gap-6 pt-4">
               <div className="flex flex-col">
                 <span className="text-3xl font-bold text-primary">15+</span>
                 <span className="text-sm text-muted-foreground">Years Experience</span>
@@ -74,7 +74,7 @@ export function Hero() {
                 <span className="text-3xl font-bold text-primary">100%</span>
                 <span className="text-sm text-muted-foreground">Satisfaction Rate</span>
               </div>
-            </div>
+            </div> */}
           </div>
 
           <div className="relative">

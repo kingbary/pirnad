@@ -19,27 +19,40 @@ type FormData = {
 }
 
 export function Contact() {
-  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
+  const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error" | "loading">("idle")
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, touchedFields },
     reset,
     setValue,
     watch,
-  } = useForm<FormData>({ mode: "onChange" })
+  } = useForm<FormData>({
+    mode: "all",
+  })
 
   const watchedFields = watch()
 
   const onSubmit = async (data: FormData) => {
+    setSubmitStatus("loading")
     try {
-      // Simulate form submission
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      console.log("Form data:", data)
+      const response = await fetch("/api/send-email-resend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to send email")
+      }
+
       setSubmitStatus("success")
       reset()
       setTimeout(() => setSubmitStatus("idle"), 5000)
     } catch (error) {
+      console.error("Error sending email:", error)
       setSubmitStatus("error")
       setTimeout(() => setSubmitStatus("idle"), 5000)
     }
@@ -74,22 +87,21 @@ export function Contact() {
                         placeholder="John Smith"
                         {...register("name", { required: "Name is required" })}
                         aria-invalid={errors.name ? "true" : "false"}
-                        className={`transition-all duration-300 ${
-                          errors.name
-                            ? "border-destructive focus:ring-destructive"
-                            : watchedFields.name
-                              ? "border-accent focus:ring-accent"
-                              : ""
-                        }`}
+                        className={`transition-all duration-300 ${errors.name && touchedFields.name
+                          ? "border-destructive focus:ring-destructive"
+                          : watchedFields.name && !errors.name
+                            ? "border-accent focus:ring-accent"
+                            : ""
+                          }`}
                       />
-                      {errors.name && (
+                      {errors.name && touchedFields.name && (
                         <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <AlertCircle className="h-3 w-3" />
                           {errors.name.message}
                         </p>
                       )}
-                      {!errors.name && watchedFields.name && (
-                        <p className="text-sm text-accent flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                      {!errors.name && watchedFields.name && touchedFields.name && (
+                        <p className="text-sm text-green-600 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <CheckCircle2 className="h-3 w-3" />
                           Looks good!
                         </p>
@@ -110,22 +122,21 @@ export function Contact() {
                           },
                         })}
                         aria-invalid={errors.email ? "true" : "false"}
-                        className={`transition-all duration-300 ${
-                          errors.email
-                            ? "border-destructive focus:ring-destructive"
-                            : watchedFields.email && !errors.email
-                              ? "border-accent focus:ring-accent"
-                              : ""
-                        }`}
+                        className={`transition-all duration-300 ${errors.email && touchedFields.email
+                          ? "border-destructive focus:ring-destructive"
+                          : watchedFields.email && !errors.email && touchedFields.email
+                            ? "border-accent focus:ring-accent"
+                            : ""
+                          }`}
                       />
-                      {errors.email && (
+                      {errors.email && touchedFields.email && (
                         <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <AlertCircle className="h-3 w-3" />
                           {errors.email.message}
                         </p>
                       )}
-                      {!errors.email && watchedFields.email && (
-                        <p className="text-sm text-accent flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                      {!errors.email && watchedFields.email && touchedFields.email && (
+                        <p className="text-sm text-green-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <CheckCircle2 className="h-3 w-3" />
                           Valid email!
                         </p>
@@ -142,22 +153,21 @@ export function Contact() {
                         placeholder="01274 123456"
                         {...register("phone", { required: "Phone number is required" })}
                         aria-invalid={errors.phone ? "true" : "false"}
-                        className={`transition-all duration-300 ${
-                          errors.phone
-                            ? "border-destructive focus:ring-destructive"
-                            : watchedFields.phone
-                              ? "border-accent focus:ring-accent"
-                              : ""
-                        }`}
+                        className={`transition-all duration-300 ${errors.phone && touchedFields.phone
+                          ? "border-destructive focus:ring-destructive"
+                          : watchedFields.phone && !errors.phone && touchedFields.phone
+                            ? "border-accent focus:ring-accent"
+                            : ""
+                          }`}
                       />
-                      {errors.phone && (
+                      {errors.phone && touchedFields.phone && (
                         <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <AlertCircle className="h-3 w-3" />
                           {errors.phone.message}
                         </p>
                       )}
-                      {!errors.phone && watchedFields.phone && (
-                        <p className="text-sm text-accent flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                      {!errors.phone && watchedFields.phone && touchedFields.phone && (
+                        <p className="text-sm text-green-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <CheckCircle2 className="h-3 w-3" />
                           Looks good!
                         </p>
@@ -166,36 +176,38 @@ export function Contact() {
 
                     <div className="space-y-2">
                       <Label htmlFor="service">Service Required *</Label>
-                      <Select onValueChange={(value) => setValue("service", value, { shouldValidate: true })}>
+                      <Select
+                        value={watchedFields.service}
+                        onValueChange={(value) => setValue("service", value, { shouldValidate: true, shouldDirty: true, shouldTouch: true })}
+                      >
                         <SelectTrigger
                           id="service"
                           aria-invalid={errors.service ? "true" : "false"}
-                          className={`transition-all duration-300 ${
-                            errors.service
-                              ? "border-destructive focus:ring-destructive"
-                              : watchedFields.service
-                                ? "border-accent focus:ring-accent"
-                                : ""
-                          }`}
+                          className={`transition-all duration-300 ${errors.service && touchedFields.service
+                            ? "border-destructive focus:ring-destructive"
+                            : watchedFields.service && !errors.service
+                              ? "border-accent focus:ring-accent"
+                              : ""
+                            }`}
                         >
                           <SelectValue placeholder="Select a service" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="general">General Building Cleaning</SelectItem>
-                          <SelectItem value="specialized">Specialized Cleaning</SelectItem>
-                          <SelectItem value="industrial">Industrial Cleaning</SelectItem>
-                          <SelectItem value="support">Business Support Services</SelectItem>
+                          <SelectItem value="General Building Cleaning">General Building Cleaning</SelectItem>
+                          <SelectItem value="Specialized Cleaning">Specialized Cleaning</SelectItem>
+                          <SelectItem value="Industrial Cleaning">Industrial Cleaning</SelectItem>
+                          <SelectItem value="Business Support Services">Business Support Services</SelectItem>
                         </SelectContent>
                       </Select>
                       <input type="hidden" {...register("service", { required: "Please select a service" })} />
-                      {errors.service && (
+                      {errors.service && touchedFields.service && (
                         <p className="text-sm text-destructive flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <AlertCircle className="h-3 w-3" />
                           {errors.service.message}
                         </p>
                       )}
                       {!errors.service && watchedFields.service && (
-                        <p className="text-sm text-accent flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
+                        <p className="text-sm text-green-500 flex items-center gap-1 animate-in fade-in slide-in-from-top-1">
                           <CheckCircle2 className="h-3 w-3" />
                           Service selected!
                         </p>
@@ -215,7 +227,7 @@ export function Contact() {
                   </div>
 
                   {submitStatus === "success" && (
-                    <div className="flex items-center gap-2 rounded-lg bg-accent/10 p-4 text-accent animate-in fade-in slide-in-from-top-2">
+                    <div className="flex items-center gap-2 rounded-lg bg-accent/10 p-4 text-green-500 animate-in fade-in slide-in-from-top-2">
                       <CheckCircle2 className="h-5 w-5" />
                       <p className="text-sm font-medium">Thank you! We'll contact you within 24 hours.</p>
                     </div>
@@ -231,9 +243,10 @@ export function Contact() {
                   <Button
                     type="submit"
                     size="lg"
+                    disabled={submitStatus === "loading"}
                     className="w-full md:w-auto hover:scale-105 transition-transform duration-300"
                   >
-                    Send Enquiry
+                    {submitStatus === "loading" ? "Sending..." : "Send Enquiry"}
                   </Button>
                 </form>
               </CardContent>
